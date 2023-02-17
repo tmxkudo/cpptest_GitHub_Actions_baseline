@@ -1,0 +1,5 @@
+.cpptest/
+.vscode
+obj/
+reports/
+cpptest.bdf
