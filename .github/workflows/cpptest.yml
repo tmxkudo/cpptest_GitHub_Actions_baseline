@@ -4,7 +4,7 @@ name: CpptestCI
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ add_feature ]
+    branches: [ add_feature2 ]
   pull_request:
     branches: [ develop ]
 
