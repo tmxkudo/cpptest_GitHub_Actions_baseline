@@ -3,6 +3,8 @@
 void sample ( void );
 uint16_t sub ( bool_t b, uint16_t *p );
 
+int hoge ;
+
 void sample ( void )
 {
     uint16_t ret;
