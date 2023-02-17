@@ -1,0 +1,60 @@
+name: CpptestCI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ add_feature ]
+  pull_request:
+    branches: [ develop ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test-cpptest:
+    name: Analyze project with C/C++test
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Generate BDF
+      env:
+        CPPTEST_SCAN_PROJECT_NAME: MISRA
+      run: |
+        & "C:\Parasoft\2021.2\cpptest\bin\cpptesttrace.exe" make all
+      working-directory: ./
+
+    - name: Remove Workspace
+      run: |
+         Remove-Item -Recurse ../workspace
+      working-directory: ./
+
+    - name: Run C++test
+      # Use the 'run-cpptest-action' GitHub Action.
+      uses: parasoft/run-cpptest-action@1.0.1
+      with:
+        installDir: 'C:\Parasoft\2021.2\cpptest'
+        compilerConfig: 'gcc_7-64'
+        testConfig: 'builtin://MISRA C 2012'
+        reportFormat: xml,html,sarif
+        input: './cpptestscan.bdf'
+        additionalParams: '-localsettings ./settings.properties -publish'
+        commandLinePattern: '${cpptestcli} -data ../workspace -config "${testConfig}" -report "${reportDir}" -bdf "${input}" ${additionalParams}'
+
+    # Uploads analysis results in the SARIF format, so that they are displayed as GitHub code scanning alerts.
+    - name: Upload results (SARIF)
+      if: always()
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: reports/report.sarif
+    
+    # Uploads an archive that includes all report files (.xml, .html, .sarif).
+    - name: Archive reports
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: Static analysis reports
+        path: reports/*.*
